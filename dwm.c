@@ -53,7 +53,6 @@
 #define WIDTH(X)                ((X)->w)
 #define HEIGHT(X)               ((X)->h)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
-#define TEXTW(X)                (textnw(X, strlen(X)) + dc.font.height)
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast };        /* cursor */
@@ -97,21 +96,6 @@ struct Client {
 };
 
 typedef struct {
-	int x, y, w, h;
-	unsigned long norm[ColLast];
-	unsigned long sel[ColLast];
-	Drawable drawable;
-	GC gc;
-	struct {
-		int ascent;
-		int descent;
-		int height;
-		XFontSet set;
-		XFontStruct *xfont;
-	} font;
-} DC; /* draw context */
-
-typedef struct {
 	unsigned int mod;
 	KeySym keysym;
 	void (*func)(const Arg *);
@@ -128,19 +112,15 @@ struct Monitor {
 	float mfact;
 	int nmaster;
 	int num;
-	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
-	Bool showbar;
-	Bool topbar;
 	Client *clients;
 	Client *sel;
 	Client *stack;
 	Monitor *next;
-	Window barwin;
 	const Layout *lt[2];
 };
 
@@ -177,14 +157,12 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
-static unsigned long getcolor(const char *colstr);
 static Bool getrootptr(int *x, int *y);
 static long getstate(Window w);
 static Bool gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, Bool focused);
 static void grabkeys(void);
 static void incnmaster(const Arg *arg);
-static void initfont(const char *fontstr);
 static void keypress(XEvent *e);
 static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
@@ -217,9 +195,7 @@ static void sigchld(int unused);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
-static int textnw(const char *text, unsigned int len);
 static void tile(Monitor *);
-static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
@@ -227,8 +203,6 @@ static void unfocus(Client *c, Bool setfocus);
 static void unmanage(Client *c, Bool destroyed);
 static void unmapnotify(XEvent *e);
 static Bool updategeom(void);
-static void updatebarpos(Monitor *m);
-static void updatebars(void);
 static void updateclientlist(void);
 static void updatenumlockmask(void);
 static void updatesizehints(Client *c);
@@ -249,7 +223,6 @@ static const char broken[] = "broken";
 static char stext[256];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
-static int bh, blw = 0;      /* bar geometry */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
@@ -269,7 +242,6 @@ static Atom wmatom[WMLast], netatom[NetLast];
 static Bool running = True;
 static Cursor cursor[CurLast];
 static Display *dpy;
-static DC dc;
 static Monitor *mons = NULL, *selmon = NULL;
 static Window root;
 
@@ -342,10 +314,6 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact) {
 		if(*y + *h <= m->wy)
 			*y = m->wy;
 	}
-	if(*h < bh)
-		*h = bh;
-	if(*w < bh)
-		*w = bh;
 	if(resizehints || c->isfloating || !c->mon->lt[c->mon->sellt]->arrange) {
 		/* see last two sentences in ICCCM 4.1.2.3 */
 		baseismin = c->basew == c->minw && c->baseh == c->minh;
@@ -414,7 +382,7 @@ attachstack(Client *c) {
 
 void
 buttonpress(XEvent *e) {
-	unsigned int i, x, click;
+	unsigned int i, click;
 	Arg arg = {0};
 	Client *c;
 	Monitor *m;
@@ -427,23 +395,7 @@ buttonpress(XEvent *e) {
 		selmon = m;
 		focus(NULL);
 	}
-	if(ev->window == selmon->barwin) {
-		i = x = 0;
-		do
-			x += TEXTW(tags[i]);
-		while(ev->x >= x && ++i < LENGTH(tags));
-		if(i < LENGTH(tags)) {
-			click = ClkTagBar;
-			arg.ui = 1 << i;
-		}
-		else if(ev->x < x + blw)
-			click = ClkLtSymbol;
-		else if(ev->x > selmon->ww - TEXTW(stext))
-			click = ClkStatusText;
-		else
-			click = ClkWinTitle;
-	}
-	else if((c = wintoclient(ev->window))) {
+	if((c = wintoclient(ev->window))) {
 		focus(c);
 		click = ClkClientWin;
 	}
@@ -474,13 +426,7 @@ cleanup(void) {
 	for(m = mons; m; m = m->next)
 		while(m->stack)
 			unmanage(m->stack, False);
-	if(dc.font.set)
-		XFreeFontSet(dpy, dc.font.set);
-	else
-		XFreeFont(dpy, dc.font.xfont);
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
-	XFreePixmap(dpy, dc.drawable);
-	XFreeGC(dpy, dc.gc);
 	XFreeCursor(dpy, cursor[CurNormal]);
 	XFreeCursor(dpy, cursor[CurResize]);
 	XFreeCursor(dpy, cursor[CurMove]);
@@ -501,8 +447,6 @@ cleanupmon(Monitor *mon) {
 		for(m = mons; m && m->next != mon; m = m->next);
 		m->next = mon->next;
 	}
-	XUnmapWindow(dpy, mon->barwin);
-	XDestroyWindow(dpy, mon->barwin);
 	free(mon);
 }
 
@@ -565,8 +509,6 @@ createmon(void) {
 	m->tagset[0] = m->tagset[1] = 1;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
-	m->showbar = showbar;
-	m->topbar = topbar;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
@@ -726,16 +668,6 @@ getatomprop(Client *c, Atom prop) {
 	return atom;
 }
 
-unsigned long
-getcolor(const char *colstr) {
-	Colormap cmap = DefaultColormap(dpy, screen);
-	XColor color;
-
-	if(!XAllocNamedColor(dpy, cmap, colstr, &color, &color))
-		die("error, cannot allocate color '%s'\n", colstr);
-	return color.pixel;
-}
-
 Bool
 getrootptr(int *x, int *y) {
 	int di;
@@ -832,40 +764,6 @@ incnmaster(const Arg *arg) {
 	arrange(selmon);
 }
 
-void
-initfont(const char *fontstr) {
-	char *def, **missing;
-	int n;
-
-	dc.font.set = XCreateFontSet(dpy, fontstr, &missing, &n, &def);
-	if(missing) {
-		while(n--)
-			fprintf(stderr, "dwm: missing fontset: %s\n", missing[n]);
-		XFreeStringList(missing);
-	}
-	if(dc.font.set) {
-		XFontStruct **xfonts;
-		char **font_names;
-
-		dc.font.ascent = dc.font.descent = 0;
-		XExtentsOfFontSet(dc.font.set);
-		n = XFontsOfFontSet(dc.font.set, &xfonts, &font_names);
-		while(n--) {
-			dc.font.ascent = MAX(dc.font.ascent, (*xfonts)->ascent);
-			dc.font.descent = MAX(dc.font.descent,(*xfonts)->descent);
-			xfonts++;
-		}
-	}
-	else {
-		if(!(dc.font.xfont = XLoadQueryFont(dpy, fontstr))
-		&& !(dc.font.xfont = XLoadQueryFont(dpy, "fixed")))
-			die("error, cannot load font: '%s'\n", fontstr);
-		dc.font.ascent = dc.font.xfont->ascent;
-		dc.font.descent = dc.font.xfont->descent;
-	}
-	dc.font.height = dc.font.ascent + dc.font.descent;
-}
-
 #ifdef XINERAMA
 static Bool
 isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
@@ -911,7 +809,6 @@ void
 manage(Window w, XWindowAttributes *wa) {
 	Client *c, *t = NULL;
 	Window trans = None;
-	XWindowChanges wc;
 
 	if(!(c = calloc(1, sizeof(Client))))
 		die("fatal: could not malloc() %u bytes\n", sizeof(Client));
@@ -936,11 +833,7 @@ manage(Window w, XWindowAttributes *wa) {
 	if(c->y + HEIGHT(c) > c->mon->my + c->mon->mh)
 		c->y = c->mon->my + c->mon->mh - HEIGHT(c);
 	c->x = MAX(c->x, c->mon->mx);
-	/* only fix client y-offset, if the client center might cover the bar */
-	c->y = MAX(c->y, ((c->mon->by == c->mon->my) && (c->x + (c->w / 2) >= c->mon->wx)
-	           && (c->x + (c->w / 2) < c->mon->wx + c->mon->ww)) ? bh : c->mon->my);
 
-	wc.border_width = 0;
 	updatewindowtype(c);
 	updatesizehints(c);
 	updatewmhints(c);
@@ -1217,7 +1110,6 @@ restack(Monitor *m) {
 		XRaiseWindow(dpy, m->sel->win);
 	if(m->lt[m->sellt]->arrange) {
 		wc.stack_mode = Below;
-		wc.sibling = m->barwin;
 		for(c = m->stack; c; c = c->snext)
 			if(!c->isfloating && ISVISIBLE(c)) {
 				XConfigureWindow(dpy, c->win, CWSibling|CWStackMode, &wc);
@@ -1382,10 +1274,8 @@ setup(void) {
 	/* init screen */
 	screen = DefaultScreen(dpy);
 	root = RootWindow(dpy, screen);
-	initfont(font);
 	sw = DisplayWidth(dpy, screen);
 	sh = DisplayHeight(dpy, screen);
-	bh = dc.h = dc.font.height + 2;
 	updategeom();
 	/* init atoms */
 	wmatom[WMProtocols] = XInternAtom(dpy, "WM_PROTOCOLS", False);
@@ -1405,17 +1295,7 @@ setup(void) {
 	cursor[CurResize] = XCreateFontCursor(dpy, XC_sizing);
 	cursor[CurMove] = XCreateFontCursor(dpy, XC_fleur);
 	/* init appearance */
-	dc.norm[ColBG] = getcolor(normbgcolor);
-	dc.norm[ColFG] = getcolor(normfgcolor);
-	dc.sel[ColBG] = getcolor(selbgcolor);
-	dc.sel[ColFG] = getcolor(selfgcolor);
-	dc.drawable = XCreatePixmap(dpy, root, DisplayWidth(dpy, screen), bh, DefaultDepth(dpy, screen));
-	dc.gc = XCreateGC(dpy, root, 0, NULL);
-	XSetLineAttributes(dpy, dc.gc, 1, LineSolid, CapButt, JoinMiter);
-	if(!dc.font.set)
-		XSetFont(dpy, dc.gc, dc.font.xfont->fid);
 	/* init bars */
-	// updatebars();
 	updatestatus(); // don't remove updatestatus or it will have a dirty exit, rendering getty useless.
 	/* EWMH support per view */
 	XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
@@ -1482,17 +1362,6 @@ tagmon(const Arg *arg) {
 	sendmon(selmon->sel, dirtomon(arg->i));
 }
 
-int
-textnw(const char *text, unsigned int len) {
-	XRectangle r;
-
-	if(dc.font.set) {
-		XmbTextExtents(dc.font.set, text, len, NULL, &r);
-		return r.width;
-	}
-	return XTextWidth(dc.font.xfont, text, len);
-}
-
 void
 tile(Monitor *m) {
 	unsigned int i, n, h, mw, my, ty;
@@ -1517,14 +1386,6 @@ tile(Monitor *m) {
 			resize(c, m->wx + mw, m->wy + ty, m->ww - mw, h, False);
 			ty += HEIGHT(c);
 		}
-}
-
-void
-togglebar(const Arg *arg) {
-	selmon->showbar = !selmon->showbar;
-	updatebarpos(selmon);
-	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
-	arrange(selmon);
 }
 
 void
@@ -1579,7 +1440,6 @@ unfocus(Client *c, Bool setfocus) {
 void
 unmanage(Client *c, Bool destroyed) {
 	Monitor *m = c->mon;
-	XWindowChanges wc;
 
 	/* The server grab construct avoids race conditions. */
 	detach(c);
@@ -1610,38 +1470,6 @@ unmapnotify(XEvent *e) {
 		else
 			unmanage(c, False);
 	}
-}
-
-void
-updatebars(void) {
-	Monitor *m;
-	XSetWindowAttributes wa = {
-		.override_redirect = True,
-		.background_pixmap = ParentRelative,
-		.event_mask = ButtonPressMask|ExposureMask
-	};
-	for(m = mons; m; m = m->next) {
-		if (m->barwin)
-			continue;
-		m->barwin = XCreateWindow(dpy, root, m->wx, m->by, m->ww, bh, 0, DefaultDepth(dpy, screen),
-		                          CopyFromParent, DefaultVisual(dpy, screen),
-		                          CWOverrideRedirect|CWBackPixmap|CWEventMask, &wa);
-		XDefineCursor(dpy, m->barwin, cursor[CurNormal]);
-		XMapRaised(dpy, m->barwin);
-	}
-}
-
-void
-updatebarpos(Monitor *m) {
-	m->wy = m->my;
-	m->wh = m->mh;
-	if(m->showbar) {
-		m->wh -= bh;
-		m->by = m->topbar ? m->wy : m->wy + m->wh;
-		m->wy = m->topbar ? m->wy + bh : m->wy;
-	}
-	else
-		m->by = -bh;
 }
 
 void
@@ -1697,7 +1525,6 @@ updategeom(void) {
 					m->my = m->wy = unique[i].y_org;
 					m->mw = m->ww = unique[i].width;
 					m->mh = m->wh = unique[i].height;
-					updatebarpos(m);
 				}
 		}
 		else { /* less monitors available nn < n */
@@ -1729,7 +1556,6 @@ updategeom(void) {
 			dirty = True;
 			mons->mw = mons->ww = sw;
 			mons->mh = mons->wh = sh;
-			updatebarpos(mons);
 		}
 	}
 	if(dirty) {
@@ -1875,13 +1701,9 @@ Monitor *
 wintomon(Window w) {
 	int x, y;
 	Client *c;
-	Monitor *m;
 
 	if(w == root && getrootptr(&x, &y))
 		return recttomon(x, y, 1, 1);
-	for(m = mons; m; m = m->next)
-		if(w == m->barwin)
-			return m;
 	if((c = wintoclient(w)))
 		return c->mon;
 	return selmon;
