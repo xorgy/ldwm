@@ -56,7 +56,6 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast };        /* cursor */
-enum { ColBorder, ColFG, ColBG, ColLast };              /* color */
 enum { NetSupported, NetWMName, NetWMState,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast };     /* EWMH atoms */
@@ -380,6 +379,7 @@ attachstack(Client *c) {
 	c->mon->stack = c;
 }
 
+
 void
 buttonpress(XEvent *e) {
 	unsigned int i, click;
@@ -404,6 +404,7 @@ buttonpress(XEvent *e) {
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
 			buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
 }
+
 
 void
 checkotherwm(void) {
@@ -1294,9 +1295,6 @@ setup(void) {
 	cursor[CurNormal] = XCreateFontCursor(dpy, XC_left_ptr);
 	cursor[CurResize] = XCreateFontCursor(dpy, XC_sizing);
 	cursor[CurMove] = XCreateFontCursor(dpy, XC_fleur);
-	/* init appearance */
-	/* init bars */
-	updatestatus(); // don't remove updatestatus or it will have a dirty exit, rendering getty useless.
 	/* EWMH support per view */
 	XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32,
 			PropModeReplace, (unsigned char *) netatom, NetLast);
@@ -1484,6 +1482,7 @@ updateclientlist() {
 			                XA_WINDOW, 32, PropModeAppend,
 			                (unsigned char *) &(c->win), 1);
 }
+
 
 Bool
 updategeom(void) {
