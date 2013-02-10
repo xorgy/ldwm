@@ -45,8 +45,8 @@
 /* macros */
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
-#define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
-                               * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
+#define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->mx+(m)->mw) - MAX((x),(m)->mx)) \
+                               * MAX(0, MIN((y)+(h),(m)->my+(m)->mh) - MAX((y),(m)->my)))
 #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags]))
 #define LENGTH(X)               (sizeof X / sizeof X[0])
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
@@ -112,7 +112,7 @@ struct Monitor {
 	int nmaster;
 	int num;
 	int mx, my, mw, mh;   /* screen size */
-	int wx, wy, ww, wh;   /* window area  */
+//	int wx, wy, ww, wh;   /* window area  */
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
@@ -305,14 +305,14 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact) {
 			*y = 0;
 	}
 	else {
-		if(*x >= m->wx + m->ww)
-			*x = m->wx + m->ww - WIDTH(c);
-		if(*y >= m->wy + m->wh)
-			*y = m->wy + m->wh - HEIGHT(c);
-		if(*x + *w <= m->wx)
-			*x = m->wx;
-		if(*y + *h <= m->wy)
-			*y = m->wy;
+		if(*x >= m->mx + m->mw)
+			*x = m->mx + m->mw - WIDTH(c);
+		if(*y >= m->mx + m->mh)
+			*y = m->my + m->mh - HEIGHT(c);
+		if(*x + *w <= m->mx)
+			*x = m->mx;
+		if(*y + *h <= m->my)
+			*y = m->my;
 	}
 	if(resizehints || c->isfloating || !c->mon->lt[c->mon->sellt]->arrange) {
 		/* see last two sentences in ICCCM 4.1.2.3 */
@@ -891,7 +891,7 @@ monocle(Monitor *m) {
 	if(n > 0) /* override layout symbol */
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
 	for(c = nexttiled(m->clients); c; c = nexttiled(c->next))
-		resize(c, m->wx, m->wy, m->ww, m->wh, False);
+		resize(c, m->mx, m->my, m->mw, m->mh, False);
 }
 
 void
@@ -937,16 +937,16 @@ movemouse(const Arg *arg) {
 		case MotionNotify:
 			nx = ocx + (ev.xmotion.x - x);
 			ny = ocy + (ev.xmotion.y - y);
-			if(nx >= selmon->wx && nx <= selmon->wx + selmon->ww
-			&& ny >= selmon->wy && ny <= selmon->wy + selmon->wh) {
-				if(abs(selmon->wx - nx) < snap)
-					nx = selmon->wx;
-				else if(abs((selmon->wx + selmon->ww) - (nx + WIDTH(c))) < snap)
-					nx = selmon->wx + selmon->ww - WIDTH(c);
-				if(abs(selmon->wy - ny) < snap)
-					ny = selmon->wy;
-				else if(abs((selmon->wy + selmon->wh) - (ny + HEIGHT(c))) < snap)
-					ny = selmon->wy + selmon->wh - HEIGHT(c);
+			if(nx >= selmon->mx && nx <= selmon->mx + selmon->mw
+			&& ny >= selmon->my && ny <= selmon->my + selmon->mh) {
+				if(abs(selmon->mx - nx) < snap)
+					nx = selmon->mx;
+				else if(abs((selmon->mx + selmon->mw) - (nx + WIDTH(c))) < snap)
+					nx = selmon->mx + selmon->mw - WIDTH(c);
+				if(abs(selmon->my - ny) < snap)
+					ny = selmon->my;
+				else if(abs((selmon->my + selmon->mh) - (ny + HEIGHT(c))) < snap)
+					ny = selmon->my + selmon->mh - HEIGHT(c);
 				if(!c->isfloating && selmon->lt[selmon->sellt]->arrange
 				&& (abs(nx - c->x) > snap || abs(ny - c->y) > snap))
 					togglefloating(NULL);
@@ -1078,8 +1078,8 @@ resizemouse(const Arg *arg) {
 		case MotionNotify:
 			nw = MAX(ev.xmotion.x - ocx + 1, 1);
 			nh = MAX(ev.xmotion.y - ocy + 1, 1);
-			if(c->mon->wx + nw >= selmon->wx && c->mon->wx + nw <= selmon->wx + selmon->ww
-			&& c->mon->wy + nh >= selmon->wy && c->mon->wy + nh <= selmon->wy + selmon->wh)
+			if(c->mon->mx + nw >= selmon->mx && c->mon->mx + nw <= selmon->mx + selmon->mw
+			&& c->mon->my + nh >= selmon->my && c->mon->my + nh <= selmon->my + selmon->mh)
 			{
 				if(!c->isfloating && selmon->lt[selmon->sellt]->arrange
 				&& (abs(nw - c->w) > snap || abs(nh - c->h) > snap))
@@ -1371,18 +1371,18 @@ tile(Monitor *m) {
 		return;
 
 	if(n > m->nmaster)
-		mw = m->nmaster ? m->ww * m->mfact : 0;
+		mw = m->nmaster ? m->mw * m->mfact : 0;
 	else
-		mw = m->ww;
+		mw = m->mw;
 	for(i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
 		if(i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(c, m->wx, m->wy + my, mw, h, False);
+			h = (m->mh - my) / (MIN(n, m->nmaster) - i);
+			resize(c, m->mx, m->my + my, mw, h, False);
 			my += HEIGHT(c);
 		}
 		else {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw, h, False);
+			h = (m->mh - ty) / (n - i);
+			resize(c, m->mx + mw, m->my + ty, m->mw - mw, h, False);
 			ty += HEIGHT(c);
 		}
 }
@@ -1521,10 +1521,10 @@ updategeom(void) {
 				{
 					dirty = True;
 					m->num = i;
-					m->mx = m->wx = unique[i].x_org;
-					m->my = m->wy = unique[i].y_org;
-					m->mw = m->ww = unique[i].width;
-					m->mh = m->wh = unique[i].height;
+					m->mx = unique[i].x_org;
+					m->my = unique[i].y_org;
+					m->mw = unique[i].width;
+					m->mh = unique[i].height;
 				}
 		}
 		else { /* less monitors available nn < n */
@@ -1554,8 +1554,8 @@ updategeom(void) {
 			mons = createmon();
 		if(mons->mw != sw || mons->mh != sh) {
 			dirty = True;
-			mons->mw = mons->ww = sw;
-			mons->mh = mons->wh = sh;
+			mons->mw = sw;
+			mons->mh = sh;
 		}
 	}
 	if(dirty) {
