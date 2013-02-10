@@ -2,16 +2,11 @@
 
 /* appearance */
 static const char font[]            = "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*";
-static const char normbordercolor[] = "#444444";
 static const char normbgcolor[]     = "#222222";
 static const char normfgcolor[]     = "#bbbbbb";
-static const char selbordercolor[]  = "#005577";
 static const char selbgcolor[]      = "#005577";
 static const char selfgcolor[]      = "#eeeeee";
-static const unsigned int borderpx  = 0;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
-static const Bool showbar           = False;     /* False means no bar */
-static const Bool topbar            = True;     /* False means bottom bar */
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
@@ -75,6 +70,8 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },                     /* Toggle floating on current window */
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },             /* Prefix for switching viewed tags */
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },             /* Prefix for tagging a window */
+	{ MODKEY,                       XK_Right,  shiftview,      {.i = +1}   },             /* Shift the view to the right */
+	{ MODKEY,                       XK_Left,   shiftview,      {.i = -1}   },             /* Shift the view to the left */
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },              /* Switch monitor focus backward(usually to the left) */
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },              /* Switch monitor focus forward(usually to the right) */
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },              /* Tag focused window backward in the monitor stack */
