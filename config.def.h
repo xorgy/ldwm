@@ -74,6 +74,8 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },                 /* Toggle floating on current window */
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },         /* Prefix for switching viewed tags */
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },         /* Prefix for tagging a window */
+	{ MODKEY,                       XK_Right,  shiftview,      {.i = +1 } },          /* Shift the view to the right */
+	{ MODKEY,                       XK_Left,   shiftview,      {.i = -1 } },          /* Shift the view to the left */
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },          /* Focus the previous monitor */
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },          /* Focus the next monitor */
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },          /* Tag the focused window to the previous monitor */
