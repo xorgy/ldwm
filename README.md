@@ -2,6 +2,12 @@ dwm - dynamic window manager
 ============================
 dwm is an extremely fast, small, and dynamic window manager for X.
 
+This branch
+-----------
+
+This branch of dwm was hacked together to integrate one patch(shiftview), and cut out any graphical components, if you feel there are any graphical components left in this branch please let me know.
+It is also my intention to develop some original functionality, such as rotating the master area to different sides of the screen.
+
 
 Requirements
 ------------
@@ -18,9 +24,6 @@ necessary as root):
 
     make clean install
 
-If you are going to use the default bluegray color scheme it is highly
-recommended to also install the bluegray files shipped in the dextra package.
-
 
 Running dwm
 -----------
@@ -34,16 +37,6 @@ the DISPLAY environment variable is set correctly, e.g.:
     DISPLAY=foo.bar:1 exec dwm
 
 (This will start dwm on display :1 of the host foo.bar.)
-
-In order to display status info in the bar, you can do something
-like this in your .xinitrc:
-
-    while xsetroot -name "`date` `uptime | sed 's/.*,//'`"
-    do
-    	sleep 1
-    done &
-    exec dwm
-
 
 Configuration
 -------------
