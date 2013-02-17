@@ -61,8 +61,7 @@ enum { NetSupported, NetWMName, NetWMState,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast };     /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
-       ClkClientWin, ClkRootWin, ClkLast };             /* clicks */
+enum { ClkClientWin, ClkRootWin }; /* clicks */
 
 typedef union {
 	int i;
@@ -72,7 +71,7 @@ typedef union {
 } Arg;
 
 typedef struct {
-	unsigned int click;
+	//unsigned int click;
 	unsigned int mask;
 	unsigned int button;
 	void (*func)(const Arg *arg);
@@ -399,7 +398,7 @@ buttonpress(XEvent *e) {
 		click = ClkClientWin;
 	}
 	for(i = 0; i < LENGTH(buttons); i++)
-		if(click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
+		if(!click && buttons[i].func && buttons[i].button == ev->button
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
 			buttons[i].func(&buttons[i].arg);
 }
@@ -728,12 +727,11 @@ grabbuttons(Client *c, Bool focused) {
 		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
 		if(focused) {
 			for(i = 0; i < LENGTH(buttons); i++)
-				if(buttons[i].click == ClkClientWin)
-					for(j = 0; j < LENGTH(modifiers); j++)
-						XGrabButton(dpy, buttons[i].button,
-						            buttons[i].mask | modifiers[j],
-						            c->win, False, BUTTONMASK,
-						            GrabModeAsync, GrabModeSync, None, None);
+				for(j = 0; j < LENGTH(modifiers); j++)
+					XGrabButton(dpy, buttons[i].button,
+					            buttons[i].mask | modifiers[j],
+					            c->win, False, BUTTONMASK,
+					            GrabModeAsync, GrabModeSync, None, None);
 		}
 		else
 			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
