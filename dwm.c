@@ -55,8 +55,6 @@
 #define MAX(A, B)               ((A) > (B) ? (A) : (B))
 #define MIN(A, B)               ((A) < (B) ? (A) : (B))
 
-void die(const char *errstr, ...);
-
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast };        /* cursor */
 enum { NetSupported, NetWMName, NetWMState,
@@ -132,6 +130,7 @@ typedef struct {
 } Rule;
 
 /* function declarations */
+void die(const char *errstr, ...);
 static void applyrules(Client *c);
 static Bool applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact);
 static void arrange(Monitor *m);
@@ -250,6 +249,16 @@ static Window root;
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 /* function implementations */
+void
+die(const char *errstr, ...) {
+	va_list ap;
+
+	va_start(ap, errstr);
+	vfprintf(stderr, errstr, ap);
+	va_end(ap);
+	exit(EXIT_FAILURE);
+}
+
 void
 applyrules(Client *c) {
 	const char *class, *instance;
