@@ -53,6 +53,7 @@
 #define WIDTH(X)                ((X)->w)
 #define HEIGHT(X)               ((X)->h)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
+#define BROKEN			("broken")
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast };        /* cursor */
@@ -112,7 +113,6 @@ struct Monitor {
 	int nmaster;
 	int num;
 	int mx, my, mw, mh;   /* screen size */
-//	int wx, wy, ww, wh;   /* window area  */
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
@@ -219,7 +219,6 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
 
 /* variables */
-static const char broken[] = "broken";
 static char stext[256];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
@@ -263,8 +262,8 @@ applyrules(Client *c) {
 	/* rule matching */
 	c->isfloating = c->tags = 0;
 	XGetClassHint(dpy, c->win, &ch);
-	class    = ch.res_class ? ch.res_class : broken;
-	instance = ch.res_name  ? ch.res_name  : broken;
+	class    = ch.res_class ? ch.res_class : BROKEN;
+	instance = ch.res_name  ? ch.res_name  : BROKEN;
 
 	for(i = 0; i < LENGTH(rules); i++) {
 		r = &rules[i];
@@ -1635,7 +1634,7 @@ updatetitle(Client *c) {
 	if(!gettextprop(c->win, netatom[NetWMName], c->name, sizeof c->name))
 		gettextprop(c->win, XA_WM_NAME, c->name, sizeof c->name);
 	if(c->name[0] == '\0') /* hack to mark broken clients */
-		strcpy(c->name, broken);
+		strcpy(c->name, BROKEN);
 }
 
 void
