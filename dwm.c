@@ -383,7 +383,6 @@ attachstack(Client *c) {
 void
 buttonpress(XEvent *e) {
 	unsigned int i, click;
-	Arg arg = {0};
 	Client *c;
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
