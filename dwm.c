@@ -63,7 +63,6 @@ enum { NetSupported, NetWMName, NetWMState,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast };     /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { ClkClientWin, ClkRootWin }; /* clicks */
 
 typedef union {
 	int i;
@@ -388,7 +387,7 @@ buttonpress(XEvent *e) {
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
 
-	click = ClkRootWin;
+	click = 1; /* 1 for root window */
 	/* focus monitor if necessary */
 	if((m = wintomon(ev->window)) && m != selmon) {
 		unfocus(selmon->sel, True);
@@ -397,7 +396,7 @@ buttonpress(XEvent *e) {
 	}
 	if((c = wintoclient(ev->window))) {
 		focus(c);
-		click = ClkClientWin;
+		click = 0; /* 0 for client windows */
 	}
 	for(i = 0; i < LENGTH(buttons); i++)
 		if(!click && buttons[i].func && buttons[i].button == ev->button
