@@ -72,7 +72,6 @@ typedef union {
 } Arg;
 
 typedef struct {
-	//unsigned int click;
 	unsigned int mask;
 	unsigned int button;
 	void (*func)(const Arg *arg);
@@ -1686,13 +1685,11 @@ void
 shiftview(const Arg *arg) {
 	Arg shifted;
 
-	if(arg->i > 0) // left circular shift
-		shifted.ui = (selmon->tagset[selmon->seltags] << arg->i)
-		   | (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - arg->i));
-
-	else // right circular shift
-		shifted.ui = selmon->tagset[selmon->seltags] >> (- arg->i)
-		   | selmon->tagset[selmon->seltags] << (LENGTH(tags) + arg->i);
+	shifted.ui = (arg->i > 0)?
+	((selmon->tagset[selmon->seltags] << arg->i) /* leftward cyclic shift */
+	   | (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - arg->i))):
+	(selmon->tagset[selmon->seltags] >> (- arg->i) /* rightward cyclic shift */
+	   | selmon->tagset[selmon->seltags] << (LENGTH(tags) + arg->i));
 
 	view(&shifted);
 }
