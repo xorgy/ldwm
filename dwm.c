@@ -40,8 +40,6 @@
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
 
-#include "util.h"
-
 /* macros */
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
@@ -54,6 +52,8 @@
 #define HEIGHT(X)               ((X)->h)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define BROKEN			("broken")
+#define MAX(A, B)               ((A) > (B) ? (A) : (B))
+#define MIN(A, B)               ((A) < (B) ? (A) : (B))
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
@@ -150,7 +150,9 @@ static Monitor *createmon(void);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
+static void die(const char *errstr, ...);
 static Monitor *dirtomon(int dir);
+static void *ecalloc(size_t nmemb, size_t size);
 static void enternotify(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
@@ -554,6 +556,16 @@ detachstack(Client *c)
 	}
 }
 
+void
+die(const char *errstr, ...) {
+	va_list ap;
+
+	va_start(ap, errstr);
+	vfprintf(stderr, errstr, ap);
+	va_end(ap);
+	exit(EXIT_FAILURE);
+}
+
 Monitor *
 dirtomon(int dir)
 {
@@ -567,6 +579,16 @@ dirtomon(int dir)
 	else
 		for (m = mons; m->next != selmon; m = m->next);
 	return m;
+}
+
+void *
+ecalloc(size_t nmemb, size_t size)
+{
+	void *p;
+
+	if (!(p = calloc(nmemb, size)))
+		perror(NULL);
+	return p;
 }
 
 void
