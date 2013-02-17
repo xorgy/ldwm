@@ -40,8 +40,6 @@
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
 
-#include "util.h"
-
 /* macros */
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
@@ -54,6 +52,10 @@
 #define HEIGHT(X)               ((X)->h)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define BROKEN			("broken")
+#define MAX(A, B)               ((A) > (B) ? (A) : (B))
+#define MIN(A, B)               ((A) < (B) ? (A) : (B))
+
+void die(const char *errstr, ...);
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast };        /* cursor */
