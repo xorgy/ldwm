@@ -380,12 +380,11 @@ void attachstack(Client *c) {
 
 
 void buttonpress(XEvent *e) {
-	unsigned int i, click;
+	unsigned int i, isclient = 0; /* initialize click to assume root window */
 	Client *c;
 	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
 
-	click = 1; /* 1 for root window */
 	/* focus monitor if necessary */
 	if((m = wintomon(ev->window)) && m != selmon) {
 		unfocus(selmon->sel, True);
@@ -394,10 +393,10 @@ void buttonpress(XEvent *e) {
 	}
 	if((c = wintoclient(ev->window))) {
 		focus(c);
-		click = 0; /* 0 for client windows */
+		isclient = 1; /* 1 for client windows */
 	}
 	for(i = 0; i < LENGTH(buttons); i++)
-		if(!click && buttons[i].func && buttons[i].button == ev->button
+		if(isclient && buttons[i].func && buttons[i].button == ev->button
 		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
 			buttons[i].func(&buttons[i].arg);
 }
