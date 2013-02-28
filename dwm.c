@@ -130,7 +130,7 @@ typedef struct {
 } Rule;
 
 /* function declarations */
-void die(const char *errstr, ...);
+static void die(const char *errstr, ...);
 static void applyrules(Client *c);
 static Bool applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact);
 static void arrange(Monitor *m);
