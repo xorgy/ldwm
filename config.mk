@@ -1,5 +1,5 @@
-# dwm version
-VERSION = 6-amh-devel
+# jwm version
+VERSION = 6-devel
 
 # Customize below to fit your system
 
