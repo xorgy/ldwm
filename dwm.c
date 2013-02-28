@@ -203,7 +203,6 @@ static Bool updategeom(void);
 static void updateclientlist(void);
 static void updatenumlockmask(void);
 static void updatesizehints(Client *c);
-static void updatestatus(void);
 static void updatewindowtype(Client *c);
 static void updatetitle(Client *c);
 static void updatewmhints(Client *c);
@@ -217,7 +216,6 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
 
 /* variables */
-static char stext[256];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
@@ -946,9 +944,7 @@ void propertynotify(XEvent *e) {
 	Window trans;
 	XPropertyEvent *ev = &e->xproperty;
 
-	if((ev->window == root) && (ev->atom == XA_WM_NAME))
-		updatestatus();
-	else if(ev->state == PropertyDelete)
+	if(ev->state == PropertyDelete)
 		return; /* ignore */
 	else if((c = wintoclient(ev->window))) {
 		switch(ev->atom) {
@@ -1565,11 +1561,6 @@ void updatetitle(Client *c) {
 		gettextprop(c->win, XA_WM_NAME, c->name, sizeof c->name);
 	if(c->name[0] == '\0') /* hack to mark broken clients */
 		strcpy(c->name, BROKEN);
-}
-
-void updatestatus(void) {
-	if(!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
-		strcpy(stext, "dwm-"VERSION);
 }
 
 void updatewindowtype(Client *c) {
