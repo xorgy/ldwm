@@ -1,15 +1,15 @@
-# jwm - just window manager
+# ldwm - just window manager
 # See LICENSE file for copyright and license details.
 
 include config.mk
 
-SRC = jwm.c
+SRC = ldwm.c
 OBJ = ${SRC:.c=.o}
 
-all: options jwm
+all: options ldwm
 
 options:
-	@echo jwm build options:
+	@echo ldwm build options:
 	@echo "CFLAGS   = ${CFLAGS}"
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
@@ -24,37 +24,37 @@ config.h:
 	@echo creating $@ from config.def.h
 	@cp config.def.h $@
 
-jwm: ${OBJ}
+ldwm: ${OBJ}
 	@echo CC -o $@
 	@${CC} -o $@ ${OBJ} ${LDFLAGS}
 
 clean:
 	@echo cleaning
-	@rm -f jwm ${OBJ} jwm-${VERSION}.tar.gz
+	@rm -f ldwm ${OBJ} ldwm-${VERSION}.tar.gz
 
 dist: clean
 	@echo creating dist tarball
-	@mkdir -p jwm-${VERSION}
+	@mkdir -p ldwm-${VERSION}
 	@cp -R LICENSE Makefile README config.def.h config.mk \
-		jwm.1 ${SRC} jwm-${VERSION}
-	@tar -cf jwm-${VERSION}.tar jwm-${VERSION}
-	@gzip jwm-${VERSION}.tar
-	@rm -rf jwm-${VERSION}
+		ldwm.1 ${SRC} ldwm-${VERSION}
+	@tar -cf ldwm-${VERSION}.tar ldwm-${VERSION}
+	@gzip ldwm-${VERSION}.tar
+	@rm -rf ldwm-${VERSION}
 
 install: all
 	@echo installing executable file to ${DESTDIR}${PREFIX}/bin
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
-	@cp -f jwm ${DESTDIR}${PREFIX}/bin
-	@chmod 755 ${DESTDIR}${PREFIX}/bin/jwm
+	@cp -f ldwm ${DESTDIR}${PREFIX}/bin
+	@chmod 755 ${DESTDIR}${PREFIX}/bin/ldwm
 	@echo installing manual page to ${DESTDIR}${MANPREFIX}/man1
 	@mkdir -p ${DESTDIR}${MANPREFIX}/man1
-	@sed "s/VERSION/${VERSION}/g" < jwm.1 > ${DESTDIR}${MANPREFIX}/man1/jwm.1
-	@chmod 644 ${DESTDIR}${MANPREFIX}/man1/jwm.1
+	@sed "s/VERSION/${VERSION}/g" < ldwm.1 > ${DESTDIR}${MANPREFIX}/man1/ldwm.1
+	@chmod 644 ${DESTDIR}${MANPREFIX}/man1/ldwm.1
 
 uninstall:
 	@echo removing executable file from ${DESTDIR}${PREFIX}/bin
-	@rm -f ${DESTDIR}${PREFIX}/bin/jwm
+	@rm -f ${DESTDIR}${PREFIX}/bin/ldwm
 	@echo removing manual page from ${DESTDIR}${MANPREFIX}/man1
-	@rm -f ${DESTDIR}${MANPREFIX}/man1/jwm.1
+	@rm -f ${DESTDIR}${MANPREFIX}/man1/ldwm.1
 
 .PHONY: all options clean dist install uninstall
