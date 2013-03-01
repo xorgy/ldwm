@@ -18,7 +18,6 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "Gimp",     NULL,       NULL,       0,            True,        -1 },
-//	{ "Firefox",  NULL,       NULL,       1 << 8,       False,       -1 },
 };
 
 /* layout(s) */
@@ -95,4 +94,3 @@ static Button buttons[] = {
 	{  MODKEY,         Button2,        togglefloating, {0} },
 	{  MODKEY,         Button3,        resizemouse,    {0} },
 };
-
