@@ -130,7 +130,6 @@ typedef struct {
 } Rule;
 
 /* function declarations */
-static void die(const char *errstr, ...);
 static void applyrules(Client *c);
 static Bool applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact);
 static void arrange(Monitor *m);
@@ -147,6 +146,7 @@ static Monitor *createmon(void);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
 static void detachstack(Client *c);
+static void die(const char *errstr, ...);
 static Monitor *dirtomon(int dir);
 static void enternotify(XEvent *e);
 static void focus(Client *c);
