@@ -962,10 +962,10 @@ void resize(Client *c, int x, int y, int w, int h, Bool interact) {
 void resizeclient(Client *c, int x, int y, int w, int h) {
 	XWindowChanges wc;
 
-	c->oldx = c->x; c->x = wc.x = x;
-	c->oldy = c->y; c->y = wc.y = y;
-	c->oldw = c->w; c->w = wc.width = w;
-	c->oldh = c->h; c->h = wc.height = h;
+	c->x = wc.x = x;
+	c->y = wc.y = y;
+	c->w = wc.width = w;
+	c->h = wc.height = h;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight, &wc);
 	configure(c);
 	XSync(dpy, False);
