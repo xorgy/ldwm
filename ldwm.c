@@ -142,6 +142,7 @@ static void cleanup(void);
 static void cleanupmon(Monitor *mon);
 static void clearurgent(Client *c);
 static void clientmessage(XEvent *e);
+static void configure(Client *c, int x, int y, int w, int h);
 static Monitor *createmon(void);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
@@ -172,7 +173,6 @@ static void propertynotify(XEvent *e);
 static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *c, int x, int y, int w, int h, Bool interact);
-static void configure(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
 static void restack(Monitor *m);
 static void run(void);
@@ -185,6 +185,7 @@ static void setfullscreen(Client *c, Bool fullscreen);
 static void setlayout(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
+static void shiftview(const Arg *arg);
 static void showhide(Client *c);
 static void sigchld(int unused);
 static void spawn(const Arg *arg);
@@ -204,7 +205,6 @@ static void updatesizehints(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
 static void view(const Arg *arg);
-static void shiftview(const Arg *arg);
 static Client *wintoclient(Window w);
 static Monitor *wintomon(Window w);
 static int xerror(Display *dpy, XErrorEvent *ee);
@@ -244,14 +244,6 @@ static Window root;
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 /* function implementations */
-void die(const char *errstr, ...) {
-	va_list ap;
-
-	va_start(ap, errstr);
-	vfprintf(stderr, errstr, ap);
-	va_end(ap);
-	exit(EXIT_FAILURE);
-}
 
 void applyrules(Client *c) {
 	const char *class, *instance;
@@ -470,6 +462,26 @@ void clientmessage(XEvent *e) {
 	}
 }
 
+void configure(Client *c, int x, int y, int w, int h) {
+	XWindowChanges wc;
+	XConfigureEvent ce;
+
+	ce.x = c->x = wc.x = x;
+	ce.y = c->y = wc.y = y;
+	ce.width = c->w = wc.width = w;
+	ce.height = c->h = wc.height = h;
+	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight, &wc);
+
+	ce.type = ConfigureNotify;
+	ce.display = dpy;
+	ce.event = ce.window = c->win;
+	ce.above = None;
+	ce.override_redirect = False;
+
+	XSendEvent(dpy, c->win, False, StructureNotifyMask, (XEvent *)&ce);
+	XSync(dpy, False);
+}
+
 Monitor * createmon(void) {
 	Monitor *m;
 
@@ -509,6 +521,15 @@ void detachstack(Client *c) {
 		for(t = c->mon->stack; t && !ISVISIBLE(t); t = t->snext);
 		c->mon->sel = t;
 	}
+}
+
+void die(const char *errstr, ...) {
+	va_list ap;
+
+	va_start(ap, errstr);
+	vfprintf(stderr, errstr, ap);
+	va_end(ap);
+	exit(EXIT_FAILURE);
 }
 
 Monitor * dirtomon(int dir) {
@@ -934,26 +955,6 @@ void resize(Client *c, int x, int y, int w, int h, Bool interact) {
 		configure(c, x, y, w, h);
 }
 
-void configure(Client *c, int x, int y, int w, int h) {
-	XWindowChanges wc;
-	XConfigureEvent ce;
-
-	ce.x = c->x = wc.x = x;
-	ce.y = c->y = wc.y = y;
-	ce.width = c->w = wc.width = w;
-	ce.height = c->h = wc.height = h;
-	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight, &wc);
-
-	ce.type = ConfigureNotify;
-	ce.display = dpy;
-	ce.event = ce.window = c->win;
-	ce.above = None;
-	ce.override_redirect = False;
-
-	XSendEvent(dpy, c->win, False, StructureNotifyMask, (XEvent *)&ce);
-	XSync(dpy, False);
-}
-
 void resizemouse(const Arg *arg) {
 	int ocx, ocy;
 	int nw, nh;
@@ -1199,6 +1200,18 @@ void setup(void) {
 	XChangeWindowAttributes(dpy, root, CWEventMask|CWCursor, &wa);
 	XSelectInput(dpy, root, wa.event_mask);
 	grabkeys();
+}
+
+void shiftview(const Arg *arg) {
+	Arg shifted;
+
+	shifted.ui = (arg->i > 0)?
+	((selmon->tagset[selmon->seltags] << arg->i) /* leftward cyclic shift */
+	   | (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - arg->i))):
+	(selmon->tagset[selmon->seltags] >> (- arg->i) /* rightward cyclic shift */
+	   | selmon->tagset[selmon->seltags] << (LENGTH(tags) + arg->i));
+
+	view(&shifted);
 }
 
 void showhide(Client *c) {
@@ -1530,18 +1543,6 @@ void view(const Arg *arg) {
 		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
 	focus(NULL);
 	arrange(selmon);
-}
-
-void shiftview(const Arg *arg) {
-	Arg shifted;
-
-	shifted.ui = (arg->i > 0)?
-	((selmon->tagset[selmon->seltags] << arg->i) /* leftward cyclic shift */
-	   | (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - arg->i))):
-	(selmon->tagset[selmon->seltags] >> (- arg->i) /* rightward cyclic shift */
-	   | selmon->tagset[selmon->seltags] << (LENGTH(tags) + arg->i));
-
-	view(&shifted);
 }
 
 Client * wintoclient(Window w) {
