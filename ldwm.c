@@ -143,7 +143,6 @@ static void cleanup(void);
 static void cleanupmon(Monitor *mon);
 static void clearurgent(Client *c);
 static void clientmessage(XEvent *e);
-static void configure(Client *c);
 static Monitor *createmon(void);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
@@ -471,22 +470,6 @@ void clientmessage(XEvent *e) {
 		}
 		pop(c);
 	}
-}
-
-void configure(Client *c) {
-	XConfigureEvent ce;
-
-	ce.type = ConfigureNotify;
-	ce.display = dpy;
-	ce.event = c->win;
-	ce.window = c->win;
-	ce.x = c->x;
-	ce.y = c->y;
-	ce.width = c->w;
-	ce.height = c->h;
-	ce.above = None;
-	ce.override_redirect = False;
-	XSendEvent(dpy, c->win, False, StructureNotifyMask, (XEvent *)&ce);
 }
 
 Monitor * createmon(void) {
@@ -961,13 +944,21 @@ void resize(Client *c, int x, int y, int w, int h, Bool interact) {
 
 void resizeclient(Client *c, int x, int y, int w, int h) {
 	XWindowChanges wc;
+	XConfigureEvent ce;
 
-	c->x = wc.x = x;
-	c->y = wc.y = y;
-	c->w = wc.width = w;
-	c->h = wc.height = h;
+	ce.x = c->x = wc.x = x;
+	ce.y = c->y = wc.y = y;
+	ce.width = c->w = wc.width = w;
+	ce.height = c->h = wc.height = h;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight, &wc);
-	configure(c);
+
+	ce.type = ConfigureNotify;
+	ce.display = dpy;
+	ce.event = ce.window = c->win;
+	ce.above = None;
+	ce.override_redirect = False;
+
+	XSendEvent(dpy, c->win, False, StructureNotifyMask, (XEvent *)&ce);
 	XSync(dpy, False);
 }
 
