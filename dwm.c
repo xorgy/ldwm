@@ -6,7 +6,7 @@
  * events about window (dis-)appearance.  Only one X connection at a time is
  * allowed to select for this event mask.
  *
- * The event handlers of dwm are organized in an array which is accessed
+ * The event handlers of ldwm are organized in an array which is accessed
  * whenever a new event has been fetched. This allows event dispatching
  * in O(1) time.
  *
@@ -1387,7 +1387,7 @@ spawn(const Arg *arg)
 			close(ConnectionNumber(dpy));
 		setsid();
 		execvp(((char **)arg->v)[0], (char **)arg->v);
-		fprintf(stderr, "dwm: execvp %s", ((char **)arg->v)[0]);
+		fprintf(stderr, "ldwm: execvp %s", ((char **)arg->v)[0]);
 		perror(" failed");
 		exit(EXIT_SUCCESS);
 	}
@@ -1765,7 +1765,7 @@ xerror(Display *dpy, XErrorEvent *ee)
 	|| (ee->request_code == X_GrabKey && ee->error_code == BadAccess)
 	|| (ee->request_code == X_CopyArea && ee->error_code == BadDrawable))
 		return 0;
-	fprintf(stderr, "dwm: fatal error: request code=%d, error code=%d\n",
+	fprintf(stderr, "ldwm: fatal error: request code=%d, error code=%d\n",
 			ee->request_code, ee->error_code);
 	return xerrorxlib(dpy, ee); /* may call exit */
 }
@@ -1781,7 +1781,7 @@ xerrordummy(Display *dpy, XErrorEvent *ee)
 int
 xerrorstart(Display *dpy, XErrorEvent *ee)
 {
-	die("dwm: another window manager is already running\n");
+	die("ldwm: another window manager is already running\n");
 	return -1;
 }
 
@@ -1803,13 +1803,13 @@ int
 main(int argc, char *argv[])
 {
 	if (argc == 2 && !strcmp("-v", argv[1]))
-		die("dwm-"VERSION "\n");
+		die("ldwm-"VERSION "\n");
 	else if (argc != 1)
-		die("usage: dwm [-v]\n");
+		die("usage: ldwm [-v]\n");
 	if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
 		fputs("warning: no locale support\n", stderr);
 	if (!(dpy = XOpenDisplay(NULL)))
-		die("dwm: cannot open display\n");
+		die("ldwm: cannot open display\n");
 	checkotherwm();
 	setup();
 	scan();
