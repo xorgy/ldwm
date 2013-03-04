@@ -142,7 +142,7 @@ static void cleanup(void);
 static void cleanupmon(Monitor *mon);
 static void clearurgent(Client *c);
 static void clientmessage(XEvent *e);
-static void configure(Client *c);
+static void configure(Client *c, int x, int y, int w, int h);
 static Monitor *createmon(void);
 static void destroynotify(XEvent *e);
 static void detach(Client *c);
@@ -174,7 +174,6 @@ static void propertynotify(XEvent *e);
 static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
-static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
 static void restack(Monitor *m);
 static void run(void);
@@ -487,21 +486,25 @@ clientmessage(XEvent *e)
 }
 
 void
-configure(Client *c)
+configure(Client *c, int x, int y, int w, int h)
 {
+	XWindowChanges wc;
 	XConfigureEvent ce;
+
+	c->oldx = c->x; ce.x = c->x = wc.x = x;
+	c->oldy = c->y; ce.y = c->y = wc.y = y;
+	c->oldw = c->w; ce.width = c->w = wc.width = w;
+	c->oldh = c->h; ce.height = c->h = wc.height = h;
+	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight, &wc);
 
 	ce.type = ConfigureNotify;
 	ce.display = dpy;
-	ce.event = c->win;
-	ce.window = c->win;
-	ce.x = c->x;
-	ce.y = c->y;
-	ce.width = c->w;
-	ce.height = c->h;
+	ce.event = ce.window = c->win;
 	ce.above = None;
 	ce.override_redirect = False;
+
 	XSendEvent(dpy, c->win, False, StructureNotifyMask, (XEvent *)&ce);
+	XSync(dpy, False);
 }
 
 Monitor *
@@ -946,6 +949,7 @@ movemouse(const Arg *arg)
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
 		switch(ev.type) {
 		case ConfigureRequest:
+			break;
 		case MapRequest:
 			handler[ev.type](&ev);
 			break;
@@ -1052,21 +1056,7 @@ void
 resize(Client *c, int x, int y, int w, int h, int interact)
 {
 	if (applysizehints(c, &x, &y, &w, &h, interact))
-		resizeclient(c, x, y, w, h);
-}
-
-void
-resizeclient(Client *c, int x, int y, int w, int h)
-{
-	XWindowChanges wc;
-
-	c->oldx = c->x; c->x = wc.x = x;
-	c->oldy = c->y; c->y = wc.y = y;
-	c->oldw = c->w; c->w = wc.width = w;
-	c->oldh = c->h; c->h = wc.height = h;
-	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight, &wc);
-	configure(c);
-	XSync(dpy, False);
+		configure(c, x, y, w, h);
 }
 
 void
@@ -1093,6 +1083,7 @@ resizemouse(const Arg *arg)
 		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
 		switch(ev.type) {
 		case ConfigureRequest:
+			break;
 		case MapRequest:
 			handler[ev.type](&ev);
 			break;
@@ -1257,7 +1248,7 @@ setfullscreen(Client *c, int fullscreen)
 		c->isfullscreen = 1;
 		c->oldstate = c->isfloating;
 		c->isfloating = 1;
-		resizeclient(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh);
+		configure(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh);
 		XRaiseWindow(dpy, c->win);
 	} else if (!fullscreen && c->isfullscreen){
 		XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32,
@@ -1268,7 +1259,7 @@ setfullscreen(Client *c, int fullscreen)
 		c->y = c->oldy;
 		c->w = c->oldw;
 		c->h = c->oldh;
-		resizeclient(c, c->x, c->y, c->w, c->h);
+		configure(c, c->x, c->y, c->w, c->h);
 		arrange(c->mon);
 	}
 }
