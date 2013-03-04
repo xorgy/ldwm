@@ -172,7 +172,7 @@ static void propertynotify(XEvent *e);
 static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *c, int x, int y, int w, int h, Bool interact);
-static void resizeclient(Client *c, int x, int y, int w, int h);
+static void configure(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
 static void restack(Monitor *m);
 static void run(void);
@@ -939,10 +939,10 @@ Monitor * recttomon(int x, int y, int w, int h) {
 
 void resize(Client *c, int x, int y, int w, int h, Bool interact) {
 	if(applysizehints(c, &x, &y, &w, &h, interact))
-		resizeclient(c, x, y, w, h);
+		configure(c, x, y, w, h);
 }
 
-void resizeclient(Client *c, int x, int y, int w, int h) {
+void configure(Client *c, int x, int y, int w, int h) {
 	XWindowChanges wc;
 	XConfigureEvent ce;
 
@@ -1128,7 +1128,7 @@ void setfullscreen(Client *c, Bool fullscreen) {
 		c->isfullscreen = True;
 		c->oldstate = c->isfloating;
 		c->isfloating = True;
-		resizeclient(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh);
+		configure(c, c->mon->mx, c->mon->my, c->mon->mw, c->mon->mh);
 		XRaiseWindow(dpy, c->win);
 	}
 	else {
@@ -1140,7 +1140,7 @@ void setfullscreen(Client *c, Bool fullscreen) {
 		c->y = c->oldy;
 		c->w = c->oldw;
 		c->h = c->oldh;
-		resizeclient(c, c->x, c->y, c->w, c->h);
+		configure(c, c->x, c->y, c->w, c->h);
 		arrange(c->mon);
 	}
 }
