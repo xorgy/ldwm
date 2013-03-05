@@ -466,10 +466,10 @@ void configure(Client *c, int x, int y, int w, int h) {
 	XWindowChanges wc;
 	XConfigureEvent ce;
 
-	ce.x = c->x = wc.x = x;
-	ce.y = c->y = wc.y = y;
-	ce.width = c->w = wc.width = w;
-	ce.height = c->h = wc.height = h;
+	c->oldx = c->x; ce.x = c->x = wc.x = x;
+	c->oldy = c->y; ce.y = c->y = wc.y = y;
+	c->oldw = c->w; ce.width = c->w = wc.width = w;
+	c->oldh = c->h; ce.height = c->h = wc.height = h;
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight, &wc);
 
 	ce.type = ConfigureNotify;
