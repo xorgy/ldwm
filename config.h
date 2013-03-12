@@ -47,9 +47,13 @@ static const Layout layouts[] = {
 static const char *dmenucmd[] = { "dmenu_run", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
 static const char *termcmd[]  = { "gnome-terminal", NULL };
 static const char *lockcmd[]  = { "slock", NULL};
+static const char *dvorcmd[]  = { "setxkbmap", "dvorak", NULL};
+static const char *qwercmd[]  = { "setxkbmap", "us", NULL};
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
+	{ MODKEY,                       XK_a,      spawn,          {.v = dvorcmd } },         /* Set x keyboard layout to dvorak */
+	{ MODKEY|ShiftMask,             XK_a,      spawn,          {.v = qwercmd } },         /* Set X keyboard layout to us */
 	{ MODKEY,                       XK_r,      spawn,          {.v = dmenucmd } },        /* Start dmenu_run in the way defined in dmenucmd[] */
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },         /* Start your terminal as defined in termcmd[] */
 	{ MODKEY,                       XK_o,      spawn,          {.v = lockcmd } },         /* Start your lock command, as defined in lockcmd[] */
