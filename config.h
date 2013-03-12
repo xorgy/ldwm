@@ -45,7 +45,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static const char *dmenucmd[] = { "dmenu_run", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *termcmd[]  = { "gnome-terminal", NULL };
+static const char *termcmd[]  = { "termite", NULL };
 static const char *lockcmd[]  = { "slock", NULL};
 static const char *dvorcmd[]  = { "setxkbmap", "dvorak", NULL};
 static const char *qwercmd[]  = { "setxkbmap", "us", NULL};
