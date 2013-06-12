@@ -16,6 +16,9 @@ Installation
 Edit config.mk to match your local setup (ldwm is installed into
 the /usr/local namespace by default).
 
+You'll want to at least copy config.example.h to config.h, and you're likely 
+to make a few changes, do at least the prior before compiling.
+
 Afterwards enter the following command to build and install ldwm (if
 necessary as root):
 
