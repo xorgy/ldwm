@@ -1617,6 +1617,7 @@ int main(int argc, char *argv[]) {
 	if(!(dpy = XOpenDisplay(NULL)))
 		die("ldwm: cannot open display\n");
 	checkotherwm();
+	setenv("_JAVA_AWT_WM_NONREPARENTING", "1", 1);
 	setup();
 	scan();
 	run();
