@@ -24,9 +24,6 @@ necessary as root):
 
     make clean install
 
-If you are going to use the default bluegray color scheme it is highly
-recommended to also install the bluegray files shipped in the dextra package.
-
 
 Running ldwm
 -----------
