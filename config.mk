@@ -1,4 +1,4 @@
-# jwm version
+# ldwm version
 VERSION = 6-devel
 
 # Customize below to fit your system
