@@ -10,6 +10,15 @@ Requirements
 ------------
 In order to build ldwm you need the Xlib header files.
 
+As for system support, ldwm has been tested to work on at least:
+   - GNU/Linux
+   - OpenBSD
+   - FreeBSD
+   - NetBSD
+   - Solaris
+   - MINIX3
+
+And due to its dependencies, it is likely to work on any system with a working XLib, for example HP-UX.
 
 Installation
 ------------
