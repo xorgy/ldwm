@@ -50,7 +50,7 @@
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w)
 #define HEIGHT(X)               ((X)->h)
-#define TAGMASK                 ((1 << LENGTH(tags)) - 1)
+#define TAGMASK                 ((1 << tags) - 1)
 #define BROKEN			("broken")
 #define MAX(A, B)               ((A) > (B) ? (A) : (B))
 #define MIN(A, B)               ((A) < (B) ? (A) : (B))
@@ -239,9 +239,6 @@ static Window root;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
-
-/* compile-time check if all tags fit into an unsigned int bit array. */
-struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 
 /* function implementations */
 
@@ -1208,9 +1205,9 @@ void shiftview(const Arg *arg) {
 
 	shifted.ui = (arg->i > 0)?
 	((selmon->tagset[selmon->seltags] << arg->i) /* leftward cyclic shift */
-	   | (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - arg->i))):
+	   | (selmon->tagset[selmon->seltags] >> (tags - arg->i))):
 	(selmon->tagset[selmon->seltags] >> (- arg->i) /* rightward cyclic shift */
-	   | selmon->tagset[selmon->seltags] << (LENGTH(tags) + arg->i));
+	   | selmon->tagset[selmon->seltags] << (tags + arg->i));
 
 	view(&shifted);
 }
