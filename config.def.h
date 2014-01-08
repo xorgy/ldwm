@@ -8,8 +8,8 @@ static const char selbgcolor[]      = "#de9700";
 static const char selfgcolor[]      = "#eeeeee";
 static const unsigned int snap      = 32;       /* monitor edge snap distance */
 
-/* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+/* number of tags, must be less than 32 */
+static const int tags = 9;
 
 static const Rule rules[] = {
 	/* xprop(1):
