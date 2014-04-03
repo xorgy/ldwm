@@ -436,7 +436,7 @@ cleanupmon(Monitor *mon)
 		mons = mons->next;
 	else {
 		for (m = mons; m && m->next != mon; m = m->next);
-		m->next = mon->next;
+		if (m) m->next = mon->next;
 	}
 	free(mon);
 }
