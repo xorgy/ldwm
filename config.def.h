@@ -20,17 +20,11 @@ static const Rule rules[] = {
 	{ "Gimp",     NULL,       NULL,       0,            True,        -1 },
 };
 
-/* layout(s) */
+/* assorted layout options */
 static const float mfact      = 0.5;  /* factor of master area size [0.05..0.95] */
 static const int nmaster      = 1;    /* number of clients in master area */
 static const Bool resizehints = True; /* True means respect size hints in tiled resizals */
 
-static const Layout layouts[] = {
-	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
-	{ "><>",      NULL },    /* no layout function means floating behavior */
-	{ "[M]",      monocle },
-};
 
 /* key definitions */
 #define MODKEY Mod4Mask
@@ -66,9 +60,9 @@ static Key keys[] = {
 	{ MODKEY,                       XK_z,      zoom,           {0} },                     /* zoom */
 	{ MODKEY,                       XK_Tab,    view,           {0} },                     /* Switch between the currently and previously-visible tag */
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },                     /* Close a window */
-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },      /* Use layout 0 (Tile), as defined in layouts[]  */
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },      /* Use layout 1 (Floating), as defined in layouts[]  */
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },      /* Use layout 2 (Monocle), as defined in layouts[]  */
+	{ MODKEY,                       XK_t,      setlayout,      {.lt = tile} },            /* Use Tile layout */
+	{ MODKEY,                       XK_f,      setlayout,      {.lt = NULL} },            /* Use Floating layout */
+	{ MODKEY,                       XK_m,      setlayout,      {.lt = monocle} },         /* Use Monocle layout */
 	{ MODKEY,                       XK_space,  setlayout,      {0} },                     /* Switch to tiling layout */
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },                     /* Toggle floating on current window */
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },             /* Prefix for switching viewed tags */
