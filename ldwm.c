@@ -294,7 +294,7 @@ Bool applysizehints(Client *c, int *x, int *y, int *w, int *h, Bool interact) {
 	} else {
 		if(*x >= m->mx + m->mw)
 			*x = m->mx + m->mw - WIDTH(c);
-		if(*y >= m->mx + m->mh)
+		if(*y >= m->my + m->mh)
 			*y = m->my + m->mh - HEIGHT(c);
 		if(*x + *w <= m->mx)
 			*x = m->mx;
@@ -1600,7 +1600,7 @@ void zoom(const Arg *arg) {
 
 int main(int argc, char *argv[]) {
 	if(argc == 2 && !strcmp("-v", argv[1]))
-		die("ldwm-"VERSION", © 2006-2013 dwm engineers and Aaron Hamilton, see LICENSE for details\n");
+		die("ldwm-"VERSION", © 2006-2014 dwm engineers and Aaron Hamilton, see LICENSE for details\n");
 	else if(argc != 1)
 		die("usage: ldwm [-v]\n");
 	if(!setlocale(LC_CTYPE, "") || !XSupportsLocale())
